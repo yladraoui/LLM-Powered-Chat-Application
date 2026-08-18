@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/ai_chat_db?createDatabaseIfNotExist=true
+    username: yladraoui
+    password: yladraoui
+  ai:
+    openai:
+      api-key: api_key

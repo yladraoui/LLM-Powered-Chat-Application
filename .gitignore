@@ -1,0 +1,108 @@
+# ==========================================
+# 1. FICHIERS D'ENVIRONNEMENT & SÉCURITÉ
+# ==========================================
+# Clés API, identifiants BDD et variables sensibles (NE JAMAIS COMMIT)
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ==========================================
+# 2. BACKEND - SPRING BOOT & MAVEN
+# ==========================================
+# Répertoire de build Maven
+/backend/target/
+target/
+
+# Fichiers de log Spring Boot
+*.log
+/backend/logs/
+logs/
+
+# Fichiers de configuration contenant des mots de passe locaux (si vous en créez)
+/backend/src/main/resources/application-local.yml
+/backend/src/main/resources/application-local.properties
+
+# Files system DB embarquées (ex: H2 si utilisée en test)
+*.db
+
+# ==========================================
+# 3. FRONTEND - ANGULAR & NODE
+# ==========================================
+# Dépendances Node.js (volumineux, à installer via npm install)
+/frontend/node_modules/
+node_modules/
+
+# Répertoires de compilation / build d'Angular
+/frontend/dist/
+/frontend/tmp/
+/frontend/out-tsc/
+/frontend/.angular/
+dist/
+.angular/
+
+# Logs npm et yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ==========================================
+# 4. IDES & EDITEURS DE CODE
+# ==========================================
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# NetBeans
+/nbproject/private/
+/build/
+/nbbuild/
+/dist/
+/nbdist/
+
+# ==========================================
+# 5. SYSTÈME D'EXPLOITATION
+# ==========================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehwriter.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+
+# Exclure le fichier de configuration principal
+src/main/resources/application.yml
+src/main/resources/application.properties
