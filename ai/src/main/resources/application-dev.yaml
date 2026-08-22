@@ -5,4 +5,8 @@ spring:
     password: yladraoui
   ai:
     openai:
-      api-key: api_key
+      api-key: ${GROQ_API_KEY}
+      base-url: https://api.groq.com/openai
+      chat:
+        options:
+        model: llama-3.3-70b-versatile
