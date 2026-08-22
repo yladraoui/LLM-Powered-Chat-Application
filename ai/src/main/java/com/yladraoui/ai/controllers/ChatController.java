@@ -1,7 +1,8 @@
 package com.yladraoui.ai.controllers;
 
+import com.yladraoui.ai.dto.ChatRequest;
+import com.yladraoui.ai.dto.ChatResponse;
 import com.yladraoui.ai.services.ChatService;
-import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
