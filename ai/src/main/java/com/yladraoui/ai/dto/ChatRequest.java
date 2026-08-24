@@ -1,13 +1,11 @@
 package com.yladraoui.ai.dto;
 
-import org.jetbrains.annotations.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
-/**
- * @author $ {USER}
- **/
+
 public record ChatRequest(
         Long conversationId,
-        @NotNull
+        @NotBlank(message = "The message can't be validated")
         String message
 ) {
 }
