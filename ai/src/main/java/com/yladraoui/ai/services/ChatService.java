@@ -2,7 +2,6 @@ package com.yladraoui.ai.services;
 
 import com.yladraoui.ai.dto.ChatRequest;
 import com.yladraoui.ai.dto.ChatResponse;
-import com.yladraoui.ai.models.Conversation;
 import com.yladraoui.ai.repositories.ConversationRepository;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
