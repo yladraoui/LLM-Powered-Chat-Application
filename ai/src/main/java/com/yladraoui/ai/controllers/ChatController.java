@@ -3,6 +3,8 @@ package com.yladraoui.ai.controllers;
 import com.yladraoui.ai.dto.ChatRequest;
 import com.yladraoui.ai.dto.ChatResponse;
 import com.yladraoui.ai.services.ChatService;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +20,7 @@ public class ChatController {
     }
 
     @PostMapping
-    public ChatResponse chat(@RequestBody ChatRequest request) {
-        return new ChatResponse(chatService.chat(request));
+    public ResponseEntity<ChatResponse> chat(@Valid @RequestBody ChatRequest request) {
+        return ResponseEntity.ok(chatService.chat(request));
     }
 }

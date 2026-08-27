@@ -1,1 +1,25 @@
+spring:
+  application:
+    name: ai-chat-backend
+  profiles:
+    active: dev
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  ai:
+    openai:
+      chat:
+        options:
+          temperature: 0.7
 
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    com.yladraoui.ai: DEBUG
