@@ -1,7 +1,6 @@
 package com.yladraoui.ai.repositories;
 
 
-import com.yladraoui.ai.models.Message;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
