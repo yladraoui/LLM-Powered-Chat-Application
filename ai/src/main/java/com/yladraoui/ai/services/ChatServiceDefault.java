@@ -11,10 +11,10 @@ import com.yladraoui.ai.models.SenderRole;
 import com.yladraoui.ai.repositories.ConversationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ChatServiceDefault implements ChatService{
@@ -32,7 +32,6 @@ public class ChatServiceDefault implements ChatService{
     @Transactional
     public ChatResponse chat(ChatRequest request) {
         Conversation conversation = resolveConversation(request);
-
         conversation.appendMessage(new ChatMessage(SenderRole.USER, request.message()));
 
         String reply = aiChatPort.generateReply(
@@ -61,5 +60,34 @@ public class ChatServiceDefault implements ChatService{
         return trimmed.length() <= TITLE_MAX_LENGTH
                 ? trimmed
                 : trimmed.substring(0, TITLE_MAX_LENGTH) + "…";
+    }
+
+    //Streaming method
+    @Override
+    @Transactional
+    public Flux<String> streamChat(ChatRequest request) {
+        Conversation conversation = resolveConversation(request);
+
+        // Step 1 : Save the user message
+        conversation.appendMessage(new ChatMessage(SenderRole.USER, request.message()));
+        conversationRepository.save(conversation);
+
+        Long conversationId = conversation.getId();
+
+        // this variable is for save the assistant reply chunk by chunk
+        StringBuilder fullReply = new StringBuilder();
+
+        List<ChatTurn> history = conversation.getMessages().stream()
+                .map(m -> new ChatTurn(m.getRole(), m.getContent()))
+                .toList();
+
+        return aiChatPort.streamReply(history)
+                .doOnNext(chunk -> fullReply.append(chunk))  // add every chunk to the variable that we will save
+                .doOnComplete(() -> {
+                    //Now, all is done, we have the entire reply, we can save it.
+                    Conversation freshConversation = conversationRepository.findById(conversationId).orElseThrow();
+                    freshConversation.appendMessage(new ChatMessage(SenderRole.ASSISTANT, fullReply.toString()));
+                    conversationRepository.save(freshConversation);
+                });
     }
 }
