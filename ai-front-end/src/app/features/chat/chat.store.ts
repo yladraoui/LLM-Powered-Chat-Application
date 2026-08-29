@@ -20,6 +20,12 @@ export class ChatStore{
 
     readonly haveActiveConversation = computed(( () => this.currentConversationId() != null));
 
+    readonly currentTitle = computed(() => {
+        const id = this.currentConversationId();
+        if (id == null) return 'New conversation';
+        return this.conversations().find((c) => c.id === id)?.title ?? 'Conversation';
+    });
+
     loadConversations(): void {
         this.conversationService.list().subscribe({
         next: (list) => this.conversations.set(list),

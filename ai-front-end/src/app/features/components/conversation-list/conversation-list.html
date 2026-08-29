@@ -1,11 +1,19 @@
-<!-- conversation-list.component.html -->
-<aside class="conversation-list">
-  <button type="button" (click)="createNew.emit()">+ Nouvelle conversation</button>
-  <ul>
+<div class="list-wrapper">
+  <button class="new-chat-btn" type="button" (click)="createNew.emit()">
+    + Nouvelle conversation
+  </button>
+
+  <ul class="list">
     @for (conversation of conversations(); track conversation.id) {
-      <li [class.active]="conversation.id === activeId()" (click)="select.emit(conversation.id)">
+      <li
+        class="list-item"
+        [class.active]="conversation.id === activeId()"
+        (click)="select.emit(conversation.id)"
+      >
         {{ conversation.title }}
       </li>
+    } @empty {
+      <li class="list-empty">Aucune conversation pour l'instant</li>
     }
   </ul>
-</aside>
+</div>

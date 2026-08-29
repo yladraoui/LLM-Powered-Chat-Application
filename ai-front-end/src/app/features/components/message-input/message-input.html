@@ -1,11 +1,11 @@
-<!-- message-input.component.html -->
 <form class="message-input" (submit)="$event.preventDefault(); submit()">
-  <input
-    type="text"
+  <textarea
+    rows="1"
     [value]="draft()"
     (input)="draft.set($any($event.target).value)"
-    placeholder="Écrivez votre message..."
+    (keydown)="onKeydown($event)"
+    placeholder="Écrivez votre message... (Entrée pour envoyer, Maj+Entrée pour une nouvelle ligne)"
     [disabled]="disabled()"
-  />
+  ></textarea>
   <button type="submit" [disabled]="disabled()">Envoyer</button>
 </form>

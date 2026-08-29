@@ -11,6 +11,7 @@ import com.yladraoui.ai.exceptions.ConversationNotFoundException;
 import com.yladraoui.ai.models.ChatMessage;
 import com.yladraoui.ai.models.Conversation;
 import com.yladraoui.ai.models.SenderRole;
+import com.yladraoui.ai.repositories.ChatMessageRepository;
 import com.yladraoui.ai.repositories.ConversationRepository;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
@@ -24,21 +25,21 @@ import java.util.List;
 @Service
 public class ChatServiceDefault implements ChatService{
 
-    private static final int TITLE_MAX_LENGTH = 50;
     private final ConversationRepository conversationRepository;
+    private final ChatMessageRepository chatMessageRepository;
     private final AiChatPort aiChatPort;
     private final AiChatStreamPort aiChatStreamPort;
     private final AssistantReplyRecorder assistantReplyRecorder;
     private final JsonMapper jsonMapper;
 
-    public ChatServiceDefault(
-            ConversationRepository conversationRepository,
-            AiChatPort aiChatPort,
-            AiChatStreamPort aiChatStreamPort,
-            AssistantReplyRecorder assistantReplyRecorder,
-            JsonMapper jsonMapper
-    ) {
+    public ChatServiceDefault(ConversationRepository conversationRepository,
+                           ChatMessageRepository chatMessageRepository,
+                           AiChatPort aiChatPort,
+                           AiChatStreamPort aiChatStreamPort,
+                           AssistantReplyRecorder assistantReplyRecorder,
+                           JsonMapper jsonMapper) {
         this.conversationRepository = conversationRepository;
+        this.chatMessageRepository = chatMessageRepository;
         this.aiChatPort = aiChatPort;
         this.aiChatStreamPort = aiChatStreamPort;
         this.assistantReplyRecorder = assistantReplyRecorder;
@@ -46,48 +47,32 @@ public class ChatServiceDefault implements ChatService{
     }
 
     @Override
-    @Transactional
     public ChatResponse chat(ChatRequest request) {
-        Conversation conversation = resolveConversation(request);
-        conversation.appendMessage(new ChatMessage(SenderRole.USER, request.message()));
+        Long conversationId = resolveConversationId(request);
 
-        String reply = aiChatPort.generateReply(
-                conversation.getMessages().stream()
-                        .map(m -> new ChatTurn(m.getRole(), m.getContent()))
-                        .toList()
+        chatMessageRepository.save(
+                new ChatMessage(conversationRepository.getReferenceById(conversationId), SenderRole.USER, request.message())
         );
 
-        conversation.appendMessage(new ChatMessage(SenderRole.ASSISTANT, reply));
+        List<ChatTurn> history = loadHistory(conversationId);
+        String reply = aiChatPort.generateReply(history);
 
-        Conversation saved = conversationRepository.save(conversation);
+        chatMessageRepository.save(
+                new ChatMessage(conversationRepository.getReferenceById(conversationId), SenderRole.ASSISTANT, reply)
+        );
 
-        return new ChatResponse(saved.getId(), reply);
+        return new ChatResponse(conversationId, reply);
     }
 
-    private Conversation resolveConversation(ChatRequest request) {
-        if (request.conversationId() == null) {
-            return new Conversation(buildTitle(request.message()));
-        }
-        return conversationRepository.findById(request.conversationId())
-                .orElseThrow(() -> new ConversationNotFoundException(request.conversationId()));
-    }
-
-    private String buildTitle(String firstMessage) {
-        String trimmed = firstMessage.trim();
-        return trimmed.length() <= TITLE_MAX_LENGTH
-                ? trimmed
-                : trimmed.substring(0, TITLE_MAX_LENGTH) + "…";
-    }
-
-    //Streaming method
     @Override
     public Flux<ServerSentEvent<String>> streamChat(ChatRequest request) {
-        Conversation conversation = resolveConversation(request);
-        conversation.appendMessage(new ChatMessage(SenderRole.USER, request.message()));
-        conversationRepository.save(conversation);
+        Long conversationId = resolveConversationId(request);
 
-        Long conversationId = conversation.getId();
-        List<ChatTurn> history = toChatTurns(conversation);
+        chatMessageRepository.save(
+                new ChatMessage(conversationRepository.getReferenceById(conversationId), SenderRole.USER, request.message())
+        );
+
+        List<ChatTurn> history = loadHistory(conversationId);
         StringBuilder fullReply = new StringBuilder();
 
         Flux<ServerSentEvent<String>> meta = Flux.just(sse(ChatStreamEventType.CONVERSATION, conversationId.toString()));
@@ -103,6 +88,25 @@ public class ChatServiceDefault implements ChatService{
         return Flux.concat(meta, chunks, done);
     }
 
+    private Long resolveConversationId(ChatRequest request) {
+        if (request.conversationId() != null) {
+            if (!conversationRepository.existsById(request.conversationId())) {
+                throw new ConversationNotFoundException(request.conversationId());
+            }
+            return request.conversationId();
+        }
+        String title = request.message().length() > 40
+                ? request.message().substring(0, 40) + "..."
+                : request.message();
+        return conversationRepository.save(new Conversation(title)).getId();
+    }
+
+    private List<ChatTurn> loadHistory(Long conversationId) {
+        return chatMessageRepository.findByConversationIdOrderByCreatedAtAsc(conversationId).stream()
+                .map(m -> new ChatTurn(m.getRole(), m.getContent()))
+                .toList();
+    }
+
     private String toJson(String value) {
         return jsonMapper.writeValueAsString(value);
     }
@@ -112,12 +116,5 @@ public class ChatServiceDefault implements ChatService{
                 .event(type.name().toLowerCase().replace('_', '-'))
                 .data(data)
                 .build();
-    }
-
-
-    private List<ChatTurn> toChatTurns(Conversation conversation) {
-        return conversation.getMessages().stream()
-                .map(m -> new ChatTurn(m.getRole(), m.getContent()))
-                .toList();
     }
 }

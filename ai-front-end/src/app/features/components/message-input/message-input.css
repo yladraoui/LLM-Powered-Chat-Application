@@ -1,0 +1,46 @@
+:host {
+  display: block;
+  flex-shrink: 0;
+}
+
+.message-input {
+  display: flex;
+  gap: 10px;
+  padding: 14px 20px 18px;
+  border-top: 1px solid var(--border, #e4e4e2);
+  background: var(--paper, #fafaf9);
+}
+
+
+.message-input textarea {
+  flex: 1;
+  resize: none;
+  max-height: 160px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border, #e4e4e2);
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.message-input textarea:focus {
+  outline: none;
+  border-color: var(--accent, #4c5fd5);
+}
+
+.message-input button {
+  align-self: flex-end;
+  background: var(--accent, #4c5fd5);
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.message-input button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -1,13 +1,34 @@
-<!-- chat-page.component.html -->
-<div class="chat-layout">
-  <app-conversation-list
-    [conversations]="store.conversations()"
-    [activeId]="store.currentConversationId()"
-    (select)="store.openConversation($event)"
-    (createNew)="store.startNewConversation()"
-  />
+<div class="app-shell">
+  <aside class="sidebar" [class.collapsed]="!sidebarOpen()">
+    <div class="sidebar-header">
+      <button class="icon-btn" (click)="toggleSidebar()" aria-label="Réduire la barre latérale">
+        ☰
+      </button>
+      @if (sidebarOpen()) {
+        <span class="sidebar-brand">Chat IA</span>
+      }
+    </div>
+
+    @if (sidebarOpen()) {
+      <app-conversation-list
+        [conversations]="store.conversations()"
+        [activeId]="store.currentConversationId()"
+        (select)="onSelectConversation($event)"
+        (createNew)="store.startNewConversation()"
+      />
+    }
+  </aside>
 
   <section class="chat-panel">
+    <header class="chat-header">
+      @if (!sidebarOpen()) {
+        <button class="icon-btn" (click)="toggleSidebar()" aria-label="Ouvrir la barre latérale">
+          ☰
+        </button>
+      }
+      <h1 class="chat-title">{{ store.currentTitle() }}</h1>
+    </header>
+
     <app-message-list
       [messages]="store.messages()"
       [pendingReply]="store.pendingReply()"
@@ -15,7 +36,7 @@
     />
 
     @if (store.error(); as error) {
-      <p class="error">{{ error }}</p>
+      <p class="error-banner">{{ error }}</p>
     }
 
     <app-message-input [disabled]="store.isStreaming()" (send)="store.sendMessage($event)" />

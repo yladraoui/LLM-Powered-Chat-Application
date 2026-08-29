@@ -12,6 +12,13 @@ export class MessageInput {
 
   protected readonly draft = signal('');
 
+  onKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.submit();
+    }
+  }
+
   submit(): void {
     const value = this.draft().trim();
     if (!value || this.disabled()) return;
