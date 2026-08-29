@@ -37,6 +37,13 @@ public class ChatMessage {
         this.createdAt = LocalDateTime.now();
     }
 
+    public ChatMessage(Conversation conversation, SenderRole role, String content) {
+        this.conversation = conversation;
+        this.role = role;
+        this.content = content;
+        this.createdAt = LocalDateTime.now();
+    }
+
     protected void attachTo(Conversation conversation){
         this.conversation =  conversation;
     }

@@ -1,0 +1,11 @@
+<!-- conversation-list.component.html -->
+<aside class="conversation-list">
+  <button type="button" (click)="createNew.emit()">+ Nouvelle conversation</button>
+  <ul>
+    @for (conversation of conversations(); track conversation.id) {
+      <li [class.active]="conversation.id === activeId()" (click)="select.emit(conversation.id)">
+        {{ conversation.title }}
+      </li>
+    }
+  </ul>
+</aside>

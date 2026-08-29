@@ -1,0 +1,13 @@
+<div class="message-list">
+  @for (message of renderedMessages(); track message.id) {
+    <div
+      class="message"
+      [class.user]="message.role === 'USER'"
+      [class.assistant]="message.role === 'ASSISTANT'"
+      [innerHTML]="message.html"
+    ></div>
+  }
+  @if (isStreaming()) {
+    <div class="message assistant streaming" [innerHTML]="renderedPending()"></div>
+  }
+</div>

@@ -1,0 +1,23 @@
+<!-- chat-page.component.html -->
+<div class="chat-layout">
+  <app-conversation-list
+    [conversations]="store.conversations()"
+    [activeId]="store.currentConversationId()"
+    (select)="store.openConversation($event)"
+    (createNew)="store.startNewConversation()"
+  />
+
+  <section class="chat-panel">
+    <app-message-list
+      [messages]="store.messages()"
+      [pendingReply]="store.pendingReply()"
+      [isStreaming]="store.isStreaming()"
+    />
+
+    @if (store.error(); as error) {
+      <p class="error">{{ error }}</p>
+    }
+
+    <app-message-input [disabled]="store.isStreaming()" (send)="store.sendMessage($event)" />
+  </section>
+</div>

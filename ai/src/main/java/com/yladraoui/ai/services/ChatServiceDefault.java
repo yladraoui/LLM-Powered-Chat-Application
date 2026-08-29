@@ -1,5 +1,6 @@
 package com.yladraoui.ai.services;
 
+
 import com.yladraoui.ai.AiChatPort;
 import com.yladraoui.ai.AiChatStreamPort;
 import com.yladraoui.ai.ChatTurn;
@@ -15,6 +16,7 @@ import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
+import tools.jackson.databind.json.JsonMapper;
 
 
 import java.util.List;
@@ -26,15 +28,21 @@ public class ChatServiceDefault implements ChatService{
     private final ConversationRepository conversationRepository;
     private final AiChatPort aiChatPort;
     private final AiChatStreamPort aiChatStreamPort;
+    private final AssistantReplyRecorder assistantReplyRecorder;
+    private final JsonMapper jsonMapper;
 
     public ChatServiceDefault(
             ConversationRepository conversationRepository,
             AiChatPort aiChatPort,
-            AiChatStreamPort aiChatStreamPort
+            AiChatStreamPort aiChatStreamPort,
+            AssistantReplyRecorder assistantReplyRecorder,
+            JsonMapper jsonMapper
     ) {
         this.conversationRepository = conversationRepository;
         this.aiChatPort = aiChatPort;
         this.aiChatStreamPort = aiChatStreamPort;
+        this.assistantReplyRecorder = assistantReplyRecorder;
+        this.jsonMapper = jsonMapper;
     }
 
     @Override
@@ -73,7 +81,6 @@ public class ChatServiceDefault implements ChatService{
 
     //Streaming method
     @Override
-    @Transactional
     public Flux<ServerSentEvent<String>> streamChat(ChatRequest request) {
         Conversation conversation = resolveConversation(request);
         conversation.appendMessage(new ChatMessage(SenderRole.USER, request.message()));
@@ -83,33 +90,30 @@ public class ChatServiceDefault implements ChatService{
         List<ChatTurn> history = toChatTurns(conversation);
         StringBuilder fullReply = new StringBuilder();
 
-        Flux<ServerSentEvent<String>> meta = Flux.just(
-                sse(ChatStreamEventType.CONVERSATION, conversationId.toString())
-        );
+        Flux<ServerSentEvent<String>> meta = Flux.just(sse(ChatStreamEventType.CONVERSATION, conversationId.toString()));
 
         Flux<ServerSentEvent<String>> chunks = aiChatStreamPort.streamReply(history)
                 .doOnNext(fullReply::append)
-                .map(token -> sse(ChatStreamEventType.CHUNK, token))
-                .doOnComplete(() -> persistAssistantReply(conversationId, fullReply.toString()));
+                .map(token -> sse(ChatStreamEventType.CHUNK, toJson(token)))
+                .doOnComplete(() -> assistantReplyRecorder.record(conversationId, fullReply.toString()))
+                .onErrorResume(ex -> Flux.just(sse(ChatStreamEventType.STREAM_ERROR, toJson("La génération a échoué"))));
 
         Flux<ServerSentEvent<String>> done = Flux.just(sse(ChatStreamEventType.DONE, ""));
 
         return Flux.concat(meta, chunks, done);
     }
 
+    private String toJson(String value) {
+        return jsonMapper.writeValueAsString(value);
+    }
+
     private ServerSentEvent<String> sse(ChatStreamEventType type, String data) {
         return ServerSentEvent.<String>builder()
-                .event(type.name().toLowerCase())
+                .event(type.name().toLowerCase().replace('_', '-'))
                 .data(data)
                 .build();
     }
 
-    private void persistAssistantReply(Long conversationId, String reply) {
-        Conversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new ConversationNotFoundException(conversationId));
-        conversation.appendMessage(new ChatMessage(SenderRole.ASSISTANT, reply));
-        conversationRepository.save(conversation);
-    }
 
     private List<ChatTurn> toChatTurns(Conversation conversation) {
         return conversation.getMessages().stream()

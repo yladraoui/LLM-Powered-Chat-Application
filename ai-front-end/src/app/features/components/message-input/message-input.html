@@ -1,0 +1,11 @@
+<!-- message-input.component.html -->
+<form class="message-input" (submit)="$event.preventDefault(); submit()">
+  <input
+    type="text"
+    [value]="draft()"
+    (input)="draft.set($any($event.target).value)"
+    placeholder="Écrivez votre message..."
+    [disabled]="disabled()"
+  />
+  <button type="submit" [disabled]="disabled()">Envoyer</button>
+</form>
