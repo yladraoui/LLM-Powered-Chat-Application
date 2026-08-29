@@ -6,10 +6,8 @@ import com.yladraoui.ai.services.ChatService;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
 @RestController
@@ -26,8 +24,11 @@ public class ChatController {
         return ResponseEntity.ok(chatService.chat(request));
     }
 
-    @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> streamChat(@Valid @RequestBody ChatRequest request) {
-        return chatService.streamChat(request);
+    @GetMapping(path = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<String>> stream(
+            @RequestParam(required = false) Long conversationId,
+            @RequestParam String message
+    ) {
+        return chatService.streamChat(new ChatRequest(conversationId, message));
     }
 }

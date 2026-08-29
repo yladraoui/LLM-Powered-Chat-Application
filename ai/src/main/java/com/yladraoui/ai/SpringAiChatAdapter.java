@@ -29,7 +29,7 @@ import java.util.List;
  * aware that Spring AI, or Groq specifically, is being used.
  */
 @Component
-public class SpringAiChatAdapter implements AiChatPort {
+public class SpringAiChatAdapter implements AiChatPort, AiChatStreamPort {
 
     private final ChatClient chatClient;
 

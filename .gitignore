@@ -106,3 +106,45 @@ $RECYCLE.BIN/
 # Exclure le fichier de configuration principal
 src/main/resources/application.yml
 src/main/resources/application.properties
+
+
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Production / Build output
+/dist
+/tmp
+/out-tsc
+/.angular
+
+# IDEs & Editors
+/.vscode/*
+!/.vscode/settings.json
+!/.vscode/tasks.json
+!/.vscode/launch.json
+!/.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Miscellaneous
+/.sass-cache
+/connect.lock
+/coverage
+/lib-cov
+/make-log.txt
+*.log
+.DS_Store
+Thumbs.db
+
+# Environment variables (si vous utilisez des fichiers .env personnalisés)
+.env
+.env.local
